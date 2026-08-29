@@ -1,0 +1,148 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: "Load JWT secrets from GitHub Secrets"
+        run: |
+          echo "JWT_PRIVATE_KEY_B64=${{ secrets.JWT_PRIVATE_KEY_B64 }}" >> $GITHUB_ENV
+          echo "JWT_PUBLIC_KEY_B64=${{ secrets.JWT_PUBLIC_KEY_B64 }}" >> $GITHUB_ENV
+
+      - name: "Setup Python 3.11"
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: "Install Python dependencies"
+        run: pip install -r requirements.txt
+
+      - name: "Run FastAPI unit tests"
+        run: pytest tests/ -v
+
+  test-notify:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: "Load JWT secrets from GitHub Secrets"
+        run: |
+          echo "JWT_PRIVATE_KEY_B64=${{ secrets.JWT_PRIVATE_KEY_B64 }}" >> $GITHUB_ENV
+          echo "JWT_PUBLIC_KEY_B64=${{ secrets.JWT_PUBLIC_KEY_B64 }}" >> $GITHUB_ENV
+
+      - name: "Setup Node.js 20"
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: "20"
+
+      - name: "Install Node dependencies"
+        run: npm ci
+        working-directory: notify
+
+      - name: "Run Node.js notification service tests"
+        run: npm test
+        working-directory: notify
+
+  # TODO (candidates): Add the following security scanning jobs.
+  # Tool selection is your decision — document your choices in findings.md.
+  #
+  # sast:
+  #   Static Application Security Testing against app/ source code
+  #   Upload JSON report as a build artifact named sast.<tool>.json
+  #   Build should fail on critical findings
+  #
+  # sca:
+  #   Dependency / Software Composition Analysis against requirements.txt
+  #   Upload JSON report as a build artifact named sca.<tool>.json
+  #   Build should fail on critical or high severity CVEs
+  #
+  # container-scan:
+  #   Build the Docker image, then scan it for vulnerabilities and misconfigurations
+  #   Upload JSON report as a build artifact named container.<tool>.json
+  #
+  # iac-scan:
+  #   Scan the Helm chart or Terraform configuration for security misconfigurations
+  #   Upload JSON report as a build artifact named iac.<tool>.json
+
+  sast:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: "[sast] Install Semgrep SAST scanner"
+        run: pip install semgrep
+      - name: "[sast] Run source code analysis (pretty-printed)"
+        run: semgrep --json app/ 2>/dev/null | jq . > docs/TASK-2/sast.semgrep.json || true
+      - name: "[sast] Upload scan report"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: sast-report
+          path: docs/TASK-2/sast.semgrep.json
+
+  sca:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: "[sbom] Download Syft SBOM generator (v1.51.1)"
+        run: |
+          SYFT_VERSION="1.51.1"
+          SYFT_ARCHIVE="syft_${SYFT_VERSION}_linux_amd64.tar.gz"
+          curl -sSfL -o /tmp/${SYFT_ARCHIVE} "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/${SYFT_ARCHIVE}"
+          tar -xzf /tmp/${SYFT_ARCHIVE} -C /usr/local/bin syft
+          rm /tmp/${SYFT_ARCHIVE}
+      - name: "[sca] Download Grype vulnerability scanner (v0.75.0)"
+        run: |
+          GRYPE_VERSION="0.75.0"
+          GRYPE_ARCHIVE="grype_${GRYPE_VERSION}_linux_amd64.tar.gz"
+          curl -sSfL -o /tmp/${GRYPE_ARCHIVE} "https://github.com/anchore/grype/releases/download/v${GRYPE_VERSION}/${GRYPE_ARCHIVE}"
+          tar -xzf /tmp/${GRYPE_ARCHIVE} -C /usr/local/bin grype
+          rm /tmp/${GRYPE_ARCHIVE}
+      - name: "[sbom] Generate software bill of materials (pretty-printed)"
+        run: syft . -o cyclonedx-json 2>/dev/null | jq . > docs/TASK-2/sbom.cyclonedx.json
+      - name: "[sca] Run dependency vulnerability scan (pretty-printed)"
+        run: grype docs/TASK-2/sbom.cyclonedx.json -o json 2>/dev/null | jq . > docs/TASK-2/sca.grype.json || true
+
+      - name: "[sca] Upload vulnerability report"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: sca-report
+          path: docs/TASK-2/sca.grype.json
+
+  # TODO (Task 4): Containerization & Deployment
+  # container-scan:
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+  #     - name: "[container] Build Docker image"
+  #       run: docker build -t vulntracker:latest .
+  #     - name: "[container] Scan image with Trivy"
+  #       run: trivy image --format json --output docs/TASK-2/container.trivy.json vulntracker:latest || true
+  #     - name: "[container] Upload container scan report"
+  #       uses: actions/upload-artifact@4c0c28766223b89455db0b928abf8026fbda0055  # v4.0.0
+  #       with:
+  #         name: container-report
+  #         path: docs/TASK-2/container.trivy.json
+
+  # TODO (Task 4): Infrastructure as Code Security
+  # iac-scan:
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@eab543b1deed5474cc86b36264cb9e001019d845  # v4.0.5
+  #     - name: "[iac] Scan Helm charts for misconfigurations"
+  #       run: |
+  #         pip install checkov
+  #         checkov -d helm/ --framework helm --output json > docs/TASK-2/iac.checkov.json || true
+  #     - name: "[iac] Upload IaC scan report"
+  #       uses: actions/upload-artifact@4c0c28766223b89455db0b928abf8026fbda0055  # v4.0.0
+  #       with:
+  #         name: iac-report
+  #         path: docs/TASK-2/iac.checkov.json
