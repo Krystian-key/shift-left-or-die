@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@eab543b1deed5474cc86b36264cb9e001019d845  # v4.0.5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: "Setup Python 3.11"
-        uses: actions/setup-python@0a5c61591373683ada264e5217edde3ca36d98acd  # v5.0.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.11"
 
@@ -28,10 +28,10 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@eab543b1deed5474cc86b36264cb9e001019d845  # v4.0.5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: "Setup Node.js 20"
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5cb  # v4.0.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: "20"
 
@@ -67,13 +67,13 @@ jobs:
   sast:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@eab543b1deed5474cc86b36264cb9e001019d845  # v4.0.5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - name: "[sast] Install Semgrep SAST scanner"
         run: pip install semgrep
       - name: "[sast] Run source code analysis (pretty-printed)"
         run: semgrep --json app/ 2>/dev/null | jq . > docs/TASK-2/sast.semgrep.json || true
       - name: "[sast] Upload scan report"
-        uses: actions/upload-artifact@4c0c28766223b89455db0b928abf8026fbda0055  # v4.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: sast-report
           path: docs/TASK-2/sast.semgrep.json
@@ -152,7 +152,7 @@ jobs:
 
           SUMMARY
       - name: "[sca] Upload vulnerability report"
-        uses: actions/upload-artifact@4c0c28766223b89455db0b928abf8026fbda0055  # v4.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: sca-report
           path: docs/TASK-2/sca.grype.json
@@ -161,7 +161,7 @@ jobs:
   # container-scan:
   #   runs-on: ubuntu-24.04
   #   steps:
-  #     - uses: actions/checkout@eab543b1deed5474cc86b36264cb9e001019d845  # v4.0.5
+  #     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
   #     - name: "[container] Build Docker image"
   #       run: docker build -t vulntracker:latest .
   #     - name: "[container] Scan image with Trivy"
