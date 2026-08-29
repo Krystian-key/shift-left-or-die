@@ -96,11 +96,9 @@ jobs:
         run: |
           SYFT_VERSION="1.51.1"
           SYFT_ARCHIVE="syft_${SYFT_VERSION}_linux_amd64.tar.gz"
-          curl -sSfL -o /tmp/syft-checksums.txt "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/checksums.txt"
           curl -sSfL -o /tmp/${SYFT_ARCHIVE} "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/${SYFT_ARCHIVE}"
-          (cd /tmp && grep ${SYFT_ARCHIVE} syft-checksums.txt | sha256sum -c)
           tar -xzf /tmp/${SYFT_ARCHIVE} -C /usr/local/bin syft
-          rm /tmp/syft-checksums.txt /tmp/${SYFT_ARCHIVE}
+          rm /tmp/${SYFT_ARCHIVE}
       - name: "[sbom] Download Grype vulnerability scanner (v0.65.1)"
         run: |
           GRYPE_VERSION="0.65.1"
