@@ -91,7 +91,7 @@ jobs:
   sca:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@eab543b1deed5474cc86b36264cb9e001019d845  # v4.0.5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - name: "[sbom] Download Syft SBOM generator (v0.68.1)"
         run: |
           SYFT_VERSION="0.68.1"
