@@ -1,0 +1,12 @@
+{
+  "name": "shift-left-notification-service",
+  "version": "1.0.0",
+  "description": "Notification service for shift-left-or-die",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo 'No tests defined yet' && exit 0"
+  },
+  "keywords": ["notification", "service"],
+  "author": "",
+  "license": "MIT"
+}
