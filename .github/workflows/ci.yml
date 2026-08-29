@@ -92,9 +92,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      - name: "[sbom] Download Syft SBOM generator (v0.68.1)"
+      - name: "[sbom] Download Syft SBOM generator (v0.67.0)"
         run: |
-          SYFT_VERSION="0.68.1"
+          SYFT_VERSION="0.67.0"
           SYFT_ARCHIVE="syft_${SYFT_VERSION}_linux_amd64.tar.gz"
           curl -sSfL -o /tmp/syft-checksums.txt "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/checksums.txt"
           curl -sSfL -o /tmp/${SYFT_ARCHIVE} "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/${SYFT_ARCHIVE}"
