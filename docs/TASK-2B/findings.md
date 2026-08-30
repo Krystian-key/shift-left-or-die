@@ -179,6 +179,84 @@ Response (HTTP 200 OK):
 
 ---
 
+### 6. Hardcoded Database Password
+
+| Property | Value |
+|----------|-------|
+| **Tool & Scan Type** | Manual code review |
+| **Location** | `app/config.py:41` |
+| **Code** | `DB_PASSWORD = "Tr@cker2024!"` |
+| **Severity** | **CRITICAL** |
+| **CWE** | CWE-798: Use of Hard-Coded Credentials |
+| **Code Origin** | **New feature** (added in Task 1, but unused) |
+
+**Justification:**
+- Database password hardcoded as string literal in source code
+- Exposed in git history and visible to anyone with repository access
+- Although currently unused (not referenced), credentials in source control are critical risk
+- Password appears strong, but hardcoding defeats all security benefits
+
+**Business Impact:**
+- **Compliance Violation:** PCI-DSS 3.2.1, SOC 2, HIPAA prohibit hardcoded credentials
+- **Supply Chain Risk:** Anyone cloning repo gets database credentials
+- **Incident Response:** If repo compromised, must rotate credentials across infrastructure
+- **Git History:** Credentials visible forever (only removed with full rebase)
+
+**Remediation:** Move to GitHub Secrets, load via environment variables at runtime
+
+---
+
+### 7. Hardcoded Admin API Key
+
+| Property | Value |
+|----------|-------|
+| **Tool & Scan Type** | Manual code review |
+| **Location** | `app/config.py:44` |
+| **Code** | `ADMIN_API_KEY = "sk-vt-prod-8f3a2b1c9d4e5f6a7b8c9d0e1f2a3b4c"` |
+| **Severity** | **HIGH** |
+| **CWE** | CWE-798: Use of Hard-Coded Credentials |
+| **Code Origin** | **New feature** (added in Task 1, but unused) |
+
+**Justification:**
+- Admin API key hardcoded in source code
+- Follows production secret format ("sk-vt-prod-...") suggesting real key
+- Currently unused, but if referenced, grants admin access to anyone with repo
+- Harder to detect than passwords (appears as random hex string)
+
+**Business Impact:**
+- **Admin Access:** If used, anyone can assume admin privileges
+- **Data Exfiltration:** Admin key allows access to all user data, scans, findings
+- **Compliance:** Violates security standards requiring credential management
+- **Key Rotation Cost:** Requires audit of all actions taken with this key
+
+**Remediation:** Move to GitHub Secrets, load via environment variables
+
+---
+
+### 8. Hardcoded Database Username
+
+| Property | Value |
+|----------|-------|
+| **Tool & Scan Type** | Manual code review |
+| **Location** | `app/config.py:40` |
+| **Code** | `DB_USER = "vulntracker_app"` |
+| **Severity** | **HIGH** |
+| **CWE** | CWE-798: Use of Hard-Coded Credentials |
+| **Code Origin** | **New feature** (added in Task 1, but unused) |
+
+**Justification:**
+- Database username hardcoded (less sensitive than password alone, but still a credential)
+- Stored alongside password in same file
+- Violates least-privilege and secrets management principles
+
+**Business Impact:**
+- **Credential Pair Exposure:** Username + password together makes attacks trivial
+- **Information Leakage:** Reveals database account naming convention
+
+**Remediation:** Move to GitHub Secrets along with password
+
+---
+
 ## Medium Findings
 
 ### 6. High-Severity Dependency Vulnerabilities (SCA)
@@ -288,7 +366,10 @@ Response (HTTP 200 OK):
 | Finding | Severity | Type | Status | PoC |
 |---------|----------|------|--------|-----|
 | SQL Injection in `/scans/search` | CRITICAL | SAST (Semgrep) | ⚠️ **Needs immediate fix** | ✅ Burp tested |
+| Hardcoded Database Password | CRITICAL | Manual review | ⚠️ **Needs immediate fix** | Code inspection |
 | IDOR in GET `/scans/{scan_id}` | HIGH | Manual review | ⚠️ **Needs immediate fix** | ✅ Burp tested |
+| Hardcoded Admin API Key | HIGH | Manual review | ⚠️ **Needs immediate fix** | Code inspection |
+| Hardcoded Database Username | HIGH | Manual review | ⚠️ **Needs immediate fix** | Code inspection |
 | Logger credential leak (login attempt) | HIGH | SAST (Semgrep) | ⚠️ **Needs immediate fix** | Code inspection |
 | Logger credential leak (failed login) | HIGH | SAST (Semgrep) | ⚠️ **Needs immediate fix** | Code inspection |
 | Vulnerable cryptography (timing oracle) | HIGH | SCA (Grype) | ⚠️ **Needs urgent update** | Reachable via RS256 JWT |
@@ -301,14 +382,39 @@ Response (HTTP 200 OK):
 
 ## Remediation Strategy
 
-**Phase 1 (This Task - Task 3):** Fix code-level vulnerabilities
-1. Fix SQL injection: Use parameterized queries instead of f-strings
-2. Remove passwords from logs
+**Phase 1 (This Task - Task 3):** Fix code-level vulnerabilities (CRITICAL/HIGH)
+1. **Fix SQL Injection:** Use parameterized queries (SQLAlchemy ORM) instead of f-strings + `text()`
+2. **Fix IDOR:** Add `owner_id` check to GET `/scans/{scan_id}` endpoint
+3. **Remove hardcoded credentials:** Delete DB_USER, DB_PASSWORD, ADMIN_API_KEY from config.py
+4. **Move secrets to GitHub Secrets:** Store credentials as repository secrets and load via environment variables
+5. **Fix logger credential leaks:** Remove password logging from login endpoints
 
-**Phase 2:** Update dependencies
-- `pip install --upgrade cryptography python-multipart starlette`
+**Phase 2:** Update dependencies (MEDIUM/HIGH)
+- `pip install --upgrade cryptography starlette` (python-multipart not reachable, can defer)
 - Test application after updates
 
-**Phase 3:** Add security tests
-- Add test case for SQL injection payload to prevent regression
-- Add test case for logging (ensure passwords are not logged)
+**Phase 3:** Add security tests and validation
+- Test case for SQL injection payload prevention
+- Test case for authorization checks (IDOR prevention)
+- Test case for logging (ensure passwords not logged)
+- Verify credentials loaded from GitHub Secrets in CI/CD
+
+**GitHub Secrets Strategy:**
+```
+Store in GitHub Secrets:
+- DB_PASSWORD
+- DB_USER  
+- ADMIN_API_KEY
+- NOTIFY_SERVICE_URL (optional)
+- DATABASE_URL (if needed for different environments)
+
+Load in CI/CD workflow (.github/workflows/ci.yml):
+- echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+- echo "DB_USER=${{ secrets.DB_USER }}" >> $GITHUB_ENV
+- echo "ADMIN_API_KEY=${{ secrets.ADMIN_API_KEY }}" >> $GITHUB_ENV
+
+Load in app/config.py:
+- DB_USER = os.getenv("DB_USER")
+- DB_PASSWORD = os.getenv("DB_PASSWORD")
+- ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")
+```
