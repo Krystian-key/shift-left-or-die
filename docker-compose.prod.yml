@@ -1,0 +1,72 @@
+version: "3.9"
+
+services:
+  vulntracker-api:
+    image: vulntracker-api:latest
+    container_name: vulntracker-api
+
+    # Security: Read-only root filesystem (forces explicit tmpfs mounts)
+    read_only: true
+
+    # Security: Prevent privilege escalation (no SUID/SGID binaries allowed)
+    security_opt:
+      - no-new-privileges:true
+
+    # Security: Drop all Linux capabilities, grant none by default
+    cap_drop:
+      - ALL
+
+    # Security: Writable volatile storage for temporary files (ramfs)
+    # Limited size (64MB) prevents resource exhaustion attacks
+    # PYTHONDONTWRITEBYTECODE=1 prevents .pyc creation
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /var/tmp:size=64m,mode=1777
+
+    ports:
+      # Bind to localhost only (not 0.0.0.0) for local development
+      - "127.0.0.1:8000:8000"
+
+    # User context (explicit UID, same as Dockerfile)
+    user: "65532:65532"
+
+    # Environment variables (load from .env.prod, never hardcode secrets)
+    # ⚠️ WARNING: .env.prod is plaintext. For production, use secret manager:
+    # - Docker secrets (swarm mode)
+    # - External secret management (Vault, AWS Secrets Manager, etc.)
+    env_file:
+      - .env.prod
+
+    environment:
+      PYTHONUNBUFFERED: "1"
+
+    # Health check (at orchestration level, not embedded in image)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2).read()"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Resource limits + PID limit (prevent DoS via resource exhaustion)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+          pids: 100
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
