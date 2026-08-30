@@ -2,6 +2,9 @@ import os
 import base64
 from pathlib import Path
 
+# RESIDUAL RISK: Database URL is hardcoded. Should be environment variable.
+# TODO (Future): Load from os.getenv("DATABASE_URL", "sqlite:///./vulntracker.db")
+# This prevents easy switching between dev/test/prod databases without code changes.
 DATABASE_URL = "sqlite:///./vulntracker.db"
 
 # RSA keys for RS256 JWT (asymmetric)
@@ -53,4 +56,7 @@ if not ADMIN_API_KEY:
         "ADMIN_API_KEY not configured. Set in GitHub Secrets."
     )
 
+# RESIDUAL RISK: Service URL is hardcoded. Should be environment variable.
+# TODO (Future): Load from os.getenv("NOTIFY_SERVICE_URL", "http://localhost:3001")
+# This prevents different URLs for dev/staging/prod environments.
 NOTIFY_SERVICE_URL = "http://localhost:3001"
