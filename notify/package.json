@@ -4,9 +4,13 @@
   "description": "Notification service for shift-left-or-die",
   "main": "index.js",
   "scripts": {
-    "test": "echo 'No tests defined yet' && exit 0"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "keywords": ["notification", "service"],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
 }
