@@ -23,9 +23,10 @@ def search_scans_by_query(db, query: str) -> list:
     search_pattern = f"%{query}%"
     results = db.query(models.ScanResult).filter(
         or_(
-            models.ScanResult.title.like(search_pattern),
-            models.ScanResult.description.like(search_pattern),
-            models.ScanResult.cve_id.like(search_pattern)
+            models.ScanResult.title.ilike(search_pattern),
+            models.ScanResult.description.ilike(search_pattern),
+            models.ScanResult.cve_id.ilike(search_pattern)
         )
     ).all()
-    return [dict(row.__dict__) for row in results if '_sa_instance_state' not in row.__dict__]
+    result_dicts = [{k: v for k, v in row.__dict__.items() if k != '_sa_instance_state'} for row in results]
+    return result_dicts

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="f4db517d-6290-4a33-b03a-403823af7d53" name="Changes" comment="Task 3: Full completion.">
+      <change beforePath="$PROJECT_DIR$/.github/workflows/ci.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/ci.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notify/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/notify/package-lock.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="46" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Krystian-key&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:Krystian-key/shift-left-or-die.git&quot;,
+    &quot;accountId&quot;: &quot;31911cbc-64a1-4a0a-8c79-cf308fdfe79d&quot;
+  }
+}</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="3IXVPwDcGBC5FHIxtvy5iyA6If4" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "ai.playground.ignore.import.keys.banner.in.settings": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "feature/task-3",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/Users/krystiankluczkiewicz/Desktop/standard-task/shift-left-or-die/docs/TASK-3",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/docs/TASK-3" />
+      <recent name="$PROJECT_DIR$/docs/TASK-2B" />
+      <recent name="$PROJECT_DIR$/docs/TASK-1" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/docs/TASK-3" />
+      <recent name="$PROJECT_DIR$/docs/TASK-1" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PY-253.33813.50" />
+        <option value="bundled-python-sdk-d4a74c56190c-6d6dccd035ac-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.33813.50" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f4db517d-6290-4a33-b03a-403823af7d53" name="Changes" comment="" />
+      <created>1787910880621</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1787910880621</updated>
+      <workItem from="1787910882182" duration="44000" />
+      <workItem from="1787910967211" duration="10452000" />
+      <workItem from="1787997476351" duration="8246000" />
+    </task>
+    <task id="LOCAL-00001" summary="Task 1: Basic implementation or report access, documentation of resediual risks, minor improvements of application.">
+      <option name="closed" value="true" />
+      <created>1787991466628</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1787991466628</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Task 2: fixing sha issues :C">
+      <option name="closed" value="true" />
+      <created>1787998772527</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1787998772527</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Task 2: Adding secrets reading from Github Secrets.">
+      <option name="closed" value="true" />
+      <created>1787999138897</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1787999138897</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Task 2B: Prioritised findings task part.">
+      <option name="closed" value="true" />
+      <created>1788084912355</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1788084912355</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Task 3: Full completion.">
+      <option name="closed" value="true" />
+      <created>1788087800850</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1788087800850</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Task 1: Basic implementation or report access, documentation of resediual risks, minor improvements of application." />
+    <MESSAGE value="Task 2: fixing sha issues :C" />
+    <MESSAGE value="Task 2: Adding secrets reading from Github Secrets." />
+    <MESSAGE value="Task 2B: Prioritised findings task part." />
+    <MESSAGE value="Task 3: Full completion." />
+    <option name="LAST_COMMIT_MESSAGE" value="Task 3: Full completion." />
+  </component>
+</project>

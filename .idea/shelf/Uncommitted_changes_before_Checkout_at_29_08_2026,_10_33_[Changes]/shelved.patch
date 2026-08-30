@@ -1,0 +1,15 @@
+Index: .gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>__pycache__/\n*.py[cod]\n*.pyo\n*.pyd\n.Python\n*.egg-info/\ndist/\nbuild/\n.venv/\nvenv/\nenv/\n*.db\n*.sqlite3\n.env\n.env.*\n!.env.example\n*.log\n.pytest_cache/\n.coverage\nhtmlcov/\nnode_modules/\n.claude/\n\n# Security: Never commit private keys or local env files\nprivate_key.pem\npublic_key.pem\n.env\n.env.local\n.env.*.local\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore	(revision 9651d403a74c8d02458b4cbfdfd61f926b0aab62)
++++ b/.gitignore	(date 1787991984633)
+@@ -27,3 +27,4 @@
+ .env
+ .env.local
+ .env.*.local
++.PROGRESS.md

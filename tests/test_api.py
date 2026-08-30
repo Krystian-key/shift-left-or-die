@@ -39,7 +39,7 @@ def reset_db():
 # Helpers
 # ---------------------------------------------------------------------------
 
-def register_and_login(username="alice", email="alice@example.com", password="StrongPass123!@#"):
+def register_and_login(username="alice", email="alice@example.com", password="StrongPassword123!@#"):
     reg_resp = client.post("/auth/register", json={"username": username, "email": email, "password": password})
     assert reg_resp.status_code == 201, f"Register failed: {reg_resp.text}"
     resp = client.post("/auth/login", json={"username": username, "password": password})
@@ -303,7 +303,7 @@ def test_get_share_password_protected_missing_password_fails():
         "affected_component": "admin",
     }, headers=auth_headers(token)).json()["id"]
 
-    share_resp = client.post(f"/scans/{scan_id}/share", json={"password": "secret123"}, headers=auth_headers(token))
+    share_resp = client.post(f"/scans/{scan_id}/share", json={"password": "SharePass123!"}, headers=auth_headers(token))
     share_url = share_resp.json()["share_url"]
     token_from_url = share_url.split("/share/")[1]
 
@@ -322,7 +322,7 @@ def test_get_share_password_protected_incorrect_password_fails():
         "affected_component": "admin",
     }, headers=auth_headers(token)).json()["id"]
 
-    share_resp = client.post(f"/scans/{scan_id}/share", json={"password": "secret123"}, headers=auth_headers(token))
+    share_resp = client.post(f"/scans/{scan_id}/share", json={"password": "SharePass123!"}, headers=auth_headers(token))
     share_url = share_resp.json()["share_url"]
     token_from_url = share_url.split("/share/")[1]
 
@@ -341,11 +341,11 @@ def test_get_share_password_protected_correct_password_succeeds():
         "affected_component": "admin",
     }, headers=auth_headers(token)).json()["id"]
 
-    share_resp = client.post(f"/scans/{scan_id}/share", json={"password": "secret123"}, headers=auth_headers(token))
+    share_resp = client.post(f"/scans/{scan_id}/share", json={"password": "SharePass123!"}, headers=auth_headers(token))
     share_url = share_resp.json()["share_url"]
     token_from_url = share_url.split("/share/")[1]
 
-    resp = client.get(f"/share/{token_from_url}?password=secret123")
+    resp = client.get(f"/share/{token_from_url}?password=SharePass123!")
     assert resp.status_code == 200
     assert resp.json()["title"] == "Protected finding"
 
@@ -397,7 +397,7 @@ def test_share_password_not_stored_plaintext():
         "affected_component": "misc",
     }, headers=auth_headers(token)).json()["id"]
 
-    password = "my_secret_password"
+    password = "MySecurePass123!"
     client.post(f"/scans/{scan_id}/share", json={"password": password}, headers=auth_headers(token))
 
     db = TestingSessionLocal()
@@ -482,7 +482,7 @@ def test_share_password_exceeds_bcrypt_limit_rejected():
         "affected_component": "misc",
     }, headers=auth_headers(token)).json()["id"]
 
-    oversized_password = "a" * 100
+    oversized_password = "X" + ("a" * 70) + "3!"
     resp = client.post(f"/scans/{scan_id}/share", json={"password": oversized_password}, headers=auth_headers(token))
     assert resp.status_code == 422
     assert "72 bytes" in resp.text or "exceeds" in resp.text
@@ -514,7 +514,7 @@ def test_sql_injection_payload_rejected():
 def test_idor_get_scan_different_user_forbidden():
     """IDOR fix: User cannot read another user's scan via GET /scans/{scan_id}"""
     # User A creates a scan
-    token_a = register_and_login(username="alice", email="alice@example.com", password="AlicePass123!@#")
+    token_a = register_and_login(username="alice", email="alice@example.com", password="AlicePassword123!@#")
     scan_resp = client.post("/scans", json={
         "title": "Alice's Secret Scan",
         "severity": "critical",
@@ -523,7 +523,7 @@ def test_idor_get_scan_different_user_forbidden():
     scan_id = scan_resp.json()["id"]
 
     # User B tries to access User A's scan
-    token_b = register_and_login(username="bob", email="bob@example.com", password="BobPass123!@#")
+    token_b = register_and_login(username="bob", email="bob@example.com", password="BobPassword123!@#")
     resp = client.get(f"/scans/{scan_id}", headers=auth_headers(token_b))
     assert resp.status_code == 404
     assert "not found" in resp.json()["detail"].lower()
@@ -621,8 +621,8 @@ def test_share_password_valid_complexity():
 
 def test_scan_ownership_enforced_on_get():
     """Authorization: GET /scans/{scan_id} checks owner_id"""
-    token_a = register_and_login(username="alice", email="alice@example.com", password="AlicePass123!@#")
-    token_b = register_and_login(username="bob", email="bob@example.com", password="BobPass123!@#")
+    token_a = register_and_login(username="alice", email="alice@example.com", password="AlicePassword123!@#")
+    token_b = register_and_login(username="bob", email="bob@example.com", password="BobPassword123!@#")
 
     # User A creates scan
     scan_resp = client.post("/scans", json={
@@ -651,17 +651,24 @@ def test_search_scans_returns_matching_results():
     token = register_and_login()
 
     # Create test scans
-    client.post("/scans", json={
+    post_resp_1 = client.post("/scans", json={
         "title": "SQL Injection in Login",
         "severity": "critical",
         "affected_component": "API",
     }, headers=auth_headers(token))
+    assert post_resp_1.status_code == 201, f"Failed to create first scan: {post_resp_1.text}"
 
-    client.post("/scans", json={
+    post_resp_2 = client.post("/scans", json={
         "title": "XSS in Dashboard",
         "severity": "high",
         "affected_component": "Frontend",
     }, headers=auth_headers(token))
+    assert post_resp_2.status_code == 201, f"Failed to create second scan: {post_resp_2.text}"
+
+    # List all scans to verify they were created
+    list_resp = client.get("/scans", headers=auth_headers(token))
+    assert list_resp.status_code == 200
+    assert len(list_resp.json()) == 2
 
     # Search for "SQL"
     resp = client.get("/scans/search?q=SQL", headers=auth_headers(token))
@@ -826,7 +833,7 @@ def test_share_password_at_bcrypt_limit_accepted():
         "affected_component": "misc",
     }, headers=auth_headers(token)).json()["id"]
 
-    exact_limit_password = "x" * 72
+    exact_limit_password = "X" + ("a" * 69) + "3!"
     resp = client.post(f"/scans/{scan_id}/share", json={"password": exact_limit_password}, headers=auth_headers(token))
     assert resp.status_code == 201
     assert "share_url" in resp.json()
