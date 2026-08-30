@@ -6,9 +6,16 @@ on:
   pull_request:
     branches: ["**"]
 
+permissions:
+  contents: read        # Minimal permissions by default
+  checks: write         # For PR checks
+  pull-requests: read   # Read PR context
+
 jobs:
   test:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -37,6 +44,8 @@ jobs:
 
   test-notify:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -59,29 +68,10 @@ jobs:
         run: npm test
         working-directory: notify
 
-  # TODO (candidates): Add the following security scanning jobs.
-  # Tool selection is your decision — document your choices in findings.md.
-  #
-  # sast:
-  #   Static Application Security Testing against app/ source code
-  #   Upload JSON report as a build artifact named sast.<tool>.json
-  #   Build should fail on critical findings
-  #
-  # sca:
-  #   Dependency / Software Composition Analysis against requirements.txt
-  #   Upload JSON report as a build artifact named sca.<tool>.json
-  #   Build should fail on critical or high severity CVEs
-  #
-  # container-scan:
-  #   Build the Docker image, then scan it for vulnerabilities and misconfigurations
-  #   Upload JSON report as a build artifact named container.<tool>.json
-  #
-  # iac-scan:
-  #   Scan the Helm chart or Terraform configuration for security misconfigurations
-  #   Upload JSON report as a build artifact named iac.<tool>.json
-
   sast:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - name: "[sast] Install Semgrep SAST scanner"
@@ -96,6 +86,8 @@ jobs:
 
   sca:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - name: "[sbom] Download Syft SBOM generator (v1.51.1)"
@@ -123,32 +115,81 @@ jobs:
           name: sca-report
           path: docs/TASK-2/sca.grype.json
 
-  # TODO (Task 4): Containerization & Deployment
-  # container-scan:
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-  #     - name: "[container] Build Docker image"
-  #       run: docker build -t vulntracker:latest .
-  #     - name: "[container] Scan image with Trivy"
-  #       run: trivy image --format json --output docs/TASK-2/container.trivy.json vulntracker:latest || true
-  #     - name: "[container] Upload container scan report"
-  #       uses: actions/upload-artifact@4c0c28766223b89455db0b928abf8026fbda0055  # v4.0.0
-  #       with:
-  #         name: container-report
-  #         path: docs/TASK-2/container.trivy.json
+  container-scan:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
-  # TODO (Task 4): Infrastructure as Code Security
-  # iac-scan:
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #     - uses: actions/checkout@eab543b1deed5474cc86b36264cb9e001019d845  # v4.0.5
-  #     - name: "[iac] Scan Helm charts for misconfigurations"
-  #       run: |
-  #         pip install checkov
-  #         checkov -d helm/ --framework helm --output json > docs/TASK-2/iac.checkov.json || true
-  #     - name: "[iac] Upload IaC scan report"
-  #       uses: actions/upload-artifact@4c0c28766223b89455db0b928abf8026fbda0055  # v4.0.0
-  #       with:
-  #         name: iac-report
-  #         path: docs/TASK-2/iac.checkov.json
+      - name: "[container] Build Docker image for scanning"
+        run: docker build -t vulntracker:latest .
+
+      - name: "[sbom] Download Syft SBOM generator (v1.51.1)"
+        run: |
+          SYFT_VERSION="1.51.1"
+          SYFT_ARCHIVE="syft_${SYFT_VERSION}_linux_amd64.tar.gz"
+          curl -sSfL -o /tmp/${SYFT_ARCHIVE} "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/${SYFT_ARCHIVE}"
+          tar -xzf /tmp/${SYFT_ARCHIVE} -C /usr/local/bin syft
+          rm /tmp/${SYFT_ARCHIVE}
+
+      - name: "[sbom] Generate container SBOM (CycloneDX)"
+        run: syft vulntracker:latest -o cyclonedx-json 2>/dev/null | jq . > docs/TASK-2/sbom.container.cyclonedx.json || echo "{}" > docs/TASK-2/sbom.container.cyclonedx.json
+
+      - name: "[container] Install Trivy scanner"
+        run: |
+          TRIVY_VERSION="0.52.1"
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update && sudo apt-get install -y trivy
+
+      - name: "[container] Scan image with Trivy (JSON)"
+        run: trivy image --format json --output docs/TASK-2/container.trivy.json vulntracker:latest || true
+
+      - name: "[container] Scan image with Trivy (table)"
+        run: trivy image vulntracker:latest || true
+
+      - name: "[container] Upload container scan report"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: container-report
+          path: docs/TASK-2/container.trivy.json
+
+      - name: "[sbom] Upload container SBOM"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: sbom-report
+          path: docs/TASK-2/sbom.container.cyclonedx.json
+
+  iac-scan:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: "[iac] Setup Python 3.11"
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: "[iac] Install Checkov"
+        run: pip install checkov
+
+      - name: "[iac] Scan Helm charts for misconfigurations"
+        run: checkov -d helm/ --framework helm --output json > docs/TASK-2/iac.checkov.json || true
+
+      - name: "[iac] Scan Dockerfile for misconfigurations"
+        run: checkov -f Dockerfile --framework dockerfile --output json >> docs/TASK-2/iac.checkov.json || true
+
+      - name: "[iac] Scan docker-compose for misconfigurations"
+        run: checkov -f docker-compose.prod.yml --framework docker-compose --output json >> docs/TASK-2/iac.checkov.json || true
+
+      - name: "[iac] Display Helm scan results (human-readable)"
+        run: checkov -d helm/ --framework helm || true
+
+      - name: "[iac] Upload IaC scan report"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: iac-report
+          path: docs/TASK-2/iac.checkov.json

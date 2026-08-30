@@ -1,0 +1,147 @@
+replicaCount: 2
+
+image:
+  repository: europe-north1-docker.pkg.dev/white-hub-472109-d1/vulntracker/api
+  # Use immutable digest instead of 'latest' for supply-chain security
+  # Example: tag: "1.0.0@sha256:abc123..."
+  # or use digest in deployment CI: image: repo/api@sha256:...
+  tag: "1.0.0"  # Pin to specific version; digest preferred for production
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: vulntracker-api
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  # fsGroup not needed: no writable PVC, read-only root FS, secrets are read-only
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  # seccompProfile defined at pod level; not needed here
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: vulntracker-api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: vulntracker-api-tls
+      hosts:
+        - vulntracker-api.example.com
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+env:
+  # NOTIFY_SERVICE_URL configured here; DATABASE_URL loaded from Secret
+  NOTIFY_SERVICE_URL: http://vulntracker-notify:3001
+
+secrets:
+  jwtPrivateKeySecret: vulntracker-jwt-keys
+  jwtPrivateKeyField: private-key-b64
+  jwtPublicKeyField: public-key-b64
+  databaseUrlSecret: vulntracker-db-credentials
+  databaseUrlField: database-url
+  # For K8s testing, SQLite uses /tmp (mounted tmpfs, writable despite read-only root FS)
+  # Production: use PostgreSQL connection string
+  adminApiKeySecret: vulntracker-admin-api
+  adminApiKeyField: api-key
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8000
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8000
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 2
+
+networkPolicy:
+  enabled: true
+  ingress:
+    # Allow traffic from ingress controller only
+    # API → Notify is allowed in egress; Notify → API callback is NOT needed
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: vulntracker-notify
+      ports:
+        - protocol: TCP
+          port: 3001
+    # DNS (CoreDNS in kube-system namespace)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Workload Identity metadata server (GKE-specific)
+    # If using Workload Identity + Secret Manager, uncomment:
+    # - to:
+    #     - podSelector: {}
+    #   ports:
+    #     - protocol: TCP
+    #       port: 988  # or 80 depending on GKE config

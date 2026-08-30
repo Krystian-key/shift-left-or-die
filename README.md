@@ -103,6 +103,81 @@ npm test
 
 ---
 
+## Docker & Deployment
+
+### Building the Container Image
+
+```bash
+# Build the Docker image
+docker build -t vulntracker-api:latest .
+
+# Test the image locally with security hardening (read-only FS, no privilege escalation)
+export $(cat .env.local | grep -v '^#' | xargs)
+docker run --rm -p 8000:8000 \
+  --read-only \
+  --security-opt no-new-privileges:true \
+  --cap-drop ALL \
+  --tmpfs /tmp \
+  --tmpfs /var/tmp \
+  -e JWT_PRIVATE_KEY_B64="$JWT_PRIVATE_KEY_B64" \
+  -e JWT_PUBLIC_KEY_B64="$JWT_PUBLIC_KEY_B64" \
+  -e DB_USER="test_user" \
+  -e DB_PASSWORD="test_pass" \
+  -e ADMIN_API_KEY="test_key" \
+  vulntracker-api:latest
+```
+
+**Image Security Properties:**
+- **Distroless Python base** — No shell, package manager, or unnecessary utilities
+- **Non-root user** — UID 65532 (Distroless nonroot user, per [systemd recommendations](https://github.com/systemd/systemd/blob/main/docs/UIDS-GIDS.md#summary) for system service accounts)
+- **Read-only root filesystem** — Multi-stage build copies dependencies to `/usr/local` (immutable)
+- **No embedded secrets** — All secrets loaded from environment variables (via secret manager in production)
+- **Minimal image size** — ~100MB (vs. 300+ MB for Alpine)
+
+**Security hardening applied:**
+- Dependency isolation: `pip install --prefix=/install` → copied to `/usr/local` (prevents PYTHONPATH issues)
+- Capabilities dropped: `cap_drop: ALL`
+- Privilege escalation blocked: `no-new-privileges: true`
+- Temporary file space: `/tmp` and `/var/tmp` as tmpfs (volatile, RAM-backed)
+
+See `docs/SECURITY_HARDENING.md` for detailed security documentation.
+
+### Kubernetes Deployment
+
+A production-ready Helm chart is included in `helm/vulntracker-api/`. It:
+
+- Sources secrets from Kubernetes Secret objects (not env vars in manifests)
+- Enforces security contexts (non-root, read-only filesystem, dropped Linux capabilities)
+- Restricts network ingress with NetworkPolicy (only from ingress controller and notification service)
+- Defines resource limits and requests (100m CPU / 128Mi memory minimum, 500m / 512Mi maximum)
+- Includes liveness and readiness probes
+- Scales horizontally with HPA (2–5 replicas based on CPU/memory)
+
+Deploy to Kubernetes:
+
+```bash
+# Install the Helm chart (customize values as needed)
+helm install vulntracker-api ./helm/vulntracker-api/ \
+  --set image.repository=your-registry/vulntracker-api \
+  --set image.tag=v1.0.0
+
+# Required secrets must be pre-created in the cluster:
+kubectl create secret generic vulntracker-jwt-keys \
+  --from-literal=private-key-b64="$JWT_PRIVATE_KEY_B64" \
+  --from-literal=public-key-b64="$JWT_PUBLIC_KEY_B64"
+
+kubectl create secret generic vulntracker-db-credentials \
+  --from-literal=username="db_user" \
+  --from-literal=password="db_password"
+
+kubectl create secret generic vulntracker-admin-api \
+  --from-literal=api-key="admin_api_key"
+```
+
+For production, use a secret manager integration (e.g., AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault) rather than `kubectl create secret`.
+
+---
+
 ## Your Tasks
 
 ### Task 1 — Extend the App _(~1–1.5 hrs)_

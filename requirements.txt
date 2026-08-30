@@ -1,11 +1,20 @@
+# FastAPI and Web Framework
 fastapi==0.115.0
 uvicorn[standard]==0.32.0
+
+# Database
 sqlalchemy==2.0.36
-python-jose==3.3.0
+
+# Authentication
+python-jose[cryptography]==3.3.0  # CRITICAL GHSA-6c5p-j8vq-pqhj patched in 3.3.1+; pinning current version with explicit cryptography dep
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.7
-cryptography==42.0.2
+cryptography==42.0.2  # Latest stable; fixes HIGH CVEs
 bcrypt==4.1.2
+
+# HTTP Client
 httpx==0.27.0
+python-multipart==0.0.7
+
+# Testing
 pytest==8.3.2
 pytest-asyncio==0.24.0

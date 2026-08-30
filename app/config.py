@@ -1,11 +1,11 @@
 import os
 import base64
+import logging
 from pathlib import Path
 
-# RESIDUAL RISK: Database URL is hardcoded. Should be environment variable.
-# TODO (Future): Load from os.getenv("DATABASE_URL", "sqlite:///./vulntracker.db")
-# This prevents easy switching between dev/test/prod databases without code changes.
-DATABASE_URL = "sqlite:///./vulntracker.db"
+logger = logging.getLogger(__name__)
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:////tmp/vulntracker.db")
 
 # RSA keys for RS256 JWT (asymmetric)
 # Production: Load from secret manager (AWS Secrets Manager, GCP Secret Manager, Vault)
@@ -20,12 +20,20 @@ PUBLIC_KEY = os.getenv("JWT_PUBLIC_KEY")
 if not PRIVATE_KEY:
     private_key_b64 = os.getenv("JWT_PRIVATE_KEY_B64")
     if private_key_b64:
-        PRIVATE_KEY = base64.b64decode(private_key_b64).decode()
+        try:
+            PRIVATE_KEY = base64.b64decode(private_key_b64).decode()
+        except Exception as e:
+            logger.error("Failed to decode JWT_PRIVATE_KEY_B64: %s", e)
+            raise RuntimeError(f"Invalid JWT_PRIVATE_KEY_B64 encoding: {e}")
 
 if not PUBLIC_KEY:
     public_key_b64 = os.getenv("JWT_PUBLIC_KEY_B64")
     if public_key_b64:
-        PUBLIC_KEY = base64.b64decode(public_key_b64).decode()
+        try:
+            PUBLIC_KEY = base64.b64decode(public_key_b64).decode()
+        except Exception as e:
+            logger.error("Failed to decode JWT_PUBLIC_KEY_B64: %s", e)
+            raise RuntimeError(f"Invalid JWT_PUBLIC_KEY_B64 encoding: {e}")
 
 if not PRIVATE_KEY or not PUBLIC_KEY:
     raise RuntimeError(
@@ -39,15 +47,7 @@ if not PRIVATE_KEY or not PUBLIC_KEY:
 ALGORITHM = "RS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# Database credentials (loaded from GitHub Secrets via environment variables)
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-if not DB_USER or not DB_PASSWORD:
-    raise RuntimeError(
-        "Database credentials not configured. Set in GitHub Secrets:\n"
-        "  - DB_USER (database username)\n"
-        "  - DB_PASSWORD (database password)"
-    )
+# Database credentials are now part of DATABASE_URL (loaded from Kubernetes Secret)
 
 # Internal service API key (loaded from GitHub Secrets)
 ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")
@@ -56,7 +56,4 @@ if not ADMIN_API_KEY:
         "ADMIN_API_KEY not configured. Set in GitHub Secrets."
     )
 
-# RESIDUAL RISK: Service URL is hardcoded. Should be environment variable.
-# TODO (Future): Load from os.getenv("NOTIFY_SERVICE_URL", "http://localhost:3001")
-# This prevents different URLs for dev/staging/prod environments.
-NOTIFY_SERVICE_URL = "http://localhost:3001"
+NOTIFY_SERVICE_URL = os.getenv("NOTIFY_SERVICE_URL", "http://localhost:3001")
