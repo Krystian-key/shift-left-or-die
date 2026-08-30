@@ -1,0 +1,243 @@
+{
+  "version": "1.175.0",
+  "results": [
+    {
+      "check_id": "python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text",
+      "path": "app/database.py",
+      "start": {
+        "line": 28,
+        "col": 25,
+        "offset": 880
+      },
+      "end": {
+        "line": 28,
+        "col": 34,
+        "offset": 889
+      },
+      "extra": {
+        "message": "sqlalchemy.text passes the constructed SQL statement to the database mostly unchanged. This means that the usual SQL injection protections are not applied and this function is vulnerable to SQL injection if user input can reach here. Use normal SQLAlchemy operators (such as `or_()`, `and_()`, etc.) to construct SQL.",
+        "metadata": {
+          "owasp": [
+            "A01:2017 - Injection",
+            "A03:2021 - Injection",
+            "A05:2025 - Injection"
+          ],
+          "cwe": [
+            "CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"
+          ],
+          "category": "security",
+          "technology": [
+            "sqlalchemy"
+          ],
+          "confidence": "MEDIUM",
+          "references": [
+            "https://docs.sqlalchemy.org/en/14/core/tutorial.html#using-textual-sql"
+          ],
+          "cwe2022-top25": true,
+          "cwe2021-top25": true,
+          "subcategory": [
+            "audit"
+          ],
+          "likelihood": "LOW",
+          "impact": "LOW",
+          "license": "Semgrep Rules License v1.0. For more details, visit semgrep.dev/legal/rules-license",
+          "vulnerability_class": [
+            "SQL Injection"
+          ],
+          "source": "https://semgrep.dev/r/python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text",
+          "shortlink": "https://sg.run/yP1O"
+        },
+        "severity": "ERROR",
+        "fingerprint": "requires login",
+        "lines": "requires login",
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    },
+    {
+      "check_id": "python.lang.security.audit.logging.logger-credential-leak.python-logger-credential-disclosure",
+      "path": "app/main.py",
+      "start": {
+        "line": 192,
+        "col": 5,
+        "offset": 5195
+      },
+      "end": {
+        "line": 192,
+        "col": 99,
+        "offset": 5289
+      },
+      "extra": {
+        "message": "Detected a python logger call with a potential hardcoded secret \"Login attempt — username: %s password: %s\" being logged. This may lead to secret credentials being exposed. Make sure that the logger is not logging  sensitive information.",
+        "metadata": {
+          "cwe": [
+            "CWE-532: Insertion of Sensitive Information into Log File"
+          ],
+          "category": "security",
+          "technology": [
+            "python"
+          ],
+          "owasp": [
+            "A09:2021 - Security Logging and Monitoring Failures",
+            "A09:2025 - Security Logging & Alerting Failures"
+          ],
+          "references": [
+            "https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures"
+          ],
+          "subcategory": [
+            "vuln"
+          ],
+          "likelihood": "LOW",
+          "impact": "MEDIUM",
+          "confidence": "MEDIUM",
+          "license": "Semgrep Rules License v1.0. For more details, visit semgrep.dev/legal/rules-license",
+          "vulnerability_class": [
+            "Mishandled Sensitive Information"
+          ],
+          "source": "https://semgrep.dev/r/python.lang.security.audit.logging.logger-credential-leak.python-logger-credential-disclosure",
+          "shortlink": "https://sg.run/ydNx"
+        },
+        "severity": "WARNING",
+        "fingerprint": "requires login",
+        "lines": "requires login",
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    },
+    {
+      "check_id": "python.lang.security.audit.logging.logger-credential-leak.python-logger-credential-disclosure",
+      "path": "app/main.py",
+      "start": {
+        "line": 195,
+        "col": 9,
+        "offset": 5468
+      },
+      "end": {
+        "line": 199,
+        "col": 10,
+        "offset": 5615
+      },
+      "extra": {
+        "message": "Detected a python logger call with a potential hardcoded secret \"Failed login — username: '%s' password: '%s'\" being logged. This may lead to secret credentials being exposed. Make sure that the logger is not logging  sensitive information.",
+        "metadata": {
+          "cwe": [
+            "CWE-532: Insertion of Sensitive Information into Log File"
+          ],
+          "category": "security",
+          "technology": [
+            "python"
+          ],
+          "owasp": [
+            "A09:2021 - Security Logging and Monitoring Failures",
+            "A09:2025 - Security Logging & Alerting Failures"
+          ],
+          "references": [
+            "https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures"
+          ],
+          "subcategory": [
+            "vuln"
+          ],
+          "likelihood": "LOW",
+          "impact": "MEDIUM",
+          "confidence": "MEDIUM",
+          "license": "Semgrep Rules License v1.0. For more details, visit semgrep.dev/legal/rules-license",
+          "vulnerability_class": [
+            "Mishandled Sensitive Information"
+          ],
+          "source": "https://semgrep.dev/r/python.lang.security.audit.logging.logger-credential-leak.python-logger-credential-disclosure",
+          "shortlink": "https://sg.run/ydNx"
+        },
+        "severity": "WARNING",
+        "fingerprint": "requires login",
+        "lines": "requires login",
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    }
+  ],
+  "errors": [],
+  "paths": {
+    "scanned": [
+      "app/__init__.py",
+      "app/auth.py",
+      "app/config.py",
+      "app/database.py",
+      "app/main.py",
+      "app/models.py",
+      "app/share.py"
+    ]
+  },
+  "time": {
+    "rules": [],
+    "rules_parse_time": 0.20310401916503906,
+    "profiling_times": {
+      "config_time": 1.1641778945922852,
+      "core_time": 0.5807533264160156,
+      "ignores_time": 0.0005888938903808594,
+      "total_time": 1.7526772022247314
+    },
+    "parsing_time": {
+      "total_time": 0.0,
+      "per_file_time": {
+        "mean": 0.0,
+        "std_dev": 0.0
+      },
+      "very_slow_stats": {
+        "time_ratio": 0.0,
+        "count_ratio": 0.0
+      },
+      "very_slow_files": []
+    },
+    "scanning_time": {
+      "total_time": 0.17542076110839844,
+      "per_file_time": {
+        "mean": 0.008353369576590402,
+        "std_dev": 0.0003379581556209566
+      },
+      "very_slow_stats": {
+        "time_ratio": 0.0,
+        "count_ratio": 0.0
+      },
+      "very_slow_files": []
+    },
+    "matching_time": {
+      "total_time": 0.0,
+      "per_file_and_rule_time": {
+        "mean": 0.0,
+        "std_dev": 0.0
+      },
+      "very_slow_stats": {
+        "time_ratio": 0.0,
+        "count_ratio": 0.0
+      },
+      "very_slow_rules_on_files": []
+    },
+    "tainting_time": {
+      "total_time": 0.0,
+      "per_def_and_rule_time": {
+        "mean": 0.0,
+        "std_dev": 0.0
+      },
+      "very_slow_stats": {
+        "time_ratio": 0.0,
+        "count_ratio": 0.0
+      },
+      "very_slow_rules_on_defs": []
+    },
+    "fixpoint_timeouts": [],
+    "prefiltering": {
+      "project_level_time": 0.0,
+      "file_level_time": 0.0,
+      "rules_with_project_prefilters_ratio": 0.0,
+      "rules_with_file_prefilters_ratio": 0.9896551724137931,
+      "rules_selected_ratio": 0.042364532019704436,
+      "rules_matched_ratio": 0.042364532019704436
+    },
+    "targets": [],
+    "total_bytes": 0,
+    "max_memory_bytes": 760740160
+  },
+  "engine_requested": "OSS",
+  "skipped_rules": [],
+  "profiling_results": []
+}
