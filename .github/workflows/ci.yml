@@ -123,7 +123,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: "[container] Setup Docker buildx"
-        uses: docker/setup-buildx-action@4c0d4b4d2b7c8e1f2b3c4d5e6f7g8h9i  # v3.0.0
+        uses: docker/setup-buildx-action@d70bba72b1f3fd609f52d6a5259edbf8129513fa  # v3.3.0
 
       - name: "[container] Build Docker image for scanning"
         run: docker build -t vulntracker:latest .
