@@ -159,11 +159,18 @@ ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")  # REQUIRED
 
 ---
 
-## Finding #5: Report Access by Direct ID (TODO)
+## Finding #5: Report Access by Direct ID ✅ FIXED (as part of IDOR remediation)
 
 **Severity:** MEDIUM  
-**Status:** TODO  
-**Note:** Burp testing showed issue accessing reports by scan ID via `/scans/{scan_id}` endpoint when unauthenticated
+**Status:** ✅ FIXED  
+**Commit:** 1c25759 (IDOR fix)
+**Note:** Endpoint `/scans/{scan_id}` requires JWT authentication AND checks owner_id
+
+**Details:**
+- Endpoint requires `current_user: models.User = Depends(get_current_user)` (JWT protected)
+- Added `owner_id == current_user.id` check in query filter
+- Returns 404 "Scan not found" if user doesn't own the scan
+- Both authentication AND authorization now enforced
 
 ---
 
