@@ -242,4 +242,69 @@ For production: Redesign to use POST with body or require authentication (Bearer
 
 ---
 
-**Task 3 Status:** 2/3 fixes complete. Burp testing in progress.
+---
+
+## Task 3 Additional Remediations ✅
+
+### Finding #7: SQL Injection via SQLAlchemy.text() ✅ FIXED
+- **Severity:** CRITICAL (9.8/10)
+- **File:** `app/database.py:20-30` (search_scans_by_query)
+- **Status:** FIXED
+- **Commit:** 68a00a5
+- **Before:** F-string SQL with text() bypass
+- **After:** SQLAlchemy ORM with parameterized or_() filter
+- **Testing:** Manual - Burp payload `' OR '1'='1` no longer bypasses WHERE clause
+
+### Finding #8: IDOR - GET /scans/{scan_id} Missing owner_id Check ✅ FIXED
+- **Severity:** HIGH (7.5/10)
+- **File:** `app/main.py:259-268`
+- **Status:** FIXED
+- **Commit:** 1c25759
+- **Before:** `filter(models.ScanResult.id == scan_id)` (no authorization)
+- **After:** `filter(...id == scan_id, owner_id == current_user.id)` (authorized)
+- **Testing:** Manual - Burp returns 404 for scans owned by other users
+
+### Finding #9: Logger Credential Disclosure (2 instances) ✅ FIXED
+- **Severity:** HIGH (6.5/10)
+- **File:** `app/main.py:192, 195-199`
+- **Status:** FIXED
+- **Commit:** 1c25759
+- **Before:** `logger.info("Login attempt — username: %s password: %s", ...)`
+- **After:** `logger.info("Login attempt for user: %s", username)`
+- **Testing:** Manual - logs no longer contain plaintext passwords
+
+### Finding #10: Vulnerable cryptography (Timing Oracle) ✅ FIXED
+- **Severity:** HIGH (6.8/10)
+- **Vulnerability:** GHSA-3ww4-gg4f-jr7f (Bleichenbacher padding oracle)
+- **File:** `requirements.txt`
+- **Status:** FIXED
+- **Commit:** ed76d42
+- **Before:** cryptography==38.0.1
+- **After:** cryptography==42.0.2
+- **Impact:** Fixes timing attack on RS256 JWT signing
+
+---
+
+## Residual Risks (Deferred)
+
+### Finding #11: Hardcoded Database Credentials (CRITICAL) - RESIDUAL RISK
+- **Severity:** CRITICAL (9.5/10)
+- **File:** `app/config.py:40-41, 44`
+- **Status:** PENDING USER ACTION (GitHub Secrets + rotation)
+- **Why Deferred:** User handling GitHub Secrets setup and credential rotation (requires infrastructure access)
+- **Residual Risk:** Credentials in git history cannot be retroactively removed without full rebase. Current mitigation: restrict repo access.
+
+### Finding #12: Vulnerable python-multipart (LOW) - NOT REACHABLE
+- **Severity:** LOW (downgraded)
+- **Status:** DEFERRED
+- **Why Deferred:** Not reachable - VulnTracker has no file upload endpoints
+- **When to Fix:** If file upload feature added in future
+
+---
+
+**Task 3 Final Status:** ✅ 4/5 remediations complete + 1 pending user action. Ready for pull request.
+
+Commits:
+- 68a00a5: SQL Injection fix
+- 1c25759: IDOR + logger leaks fix
+- ed76d42: Cryptography update
