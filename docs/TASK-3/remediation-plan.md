@@ -174,15 +174,23 @@ ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")  # REQUIRED
 
 ---
 
-## Summary Table
+## Summary Table (All Findings - Task 1 + Task 3)
 
-| Finding | Severity | File | Status | Effort |
-|---------|----------|------|--------|--------|
-| JWT "none" algorithm | CRITICAL | auth.py | ✅ FIXED | LOW |
-| UUID enumeration (Scans + Users) | HIGH | models.py | ✅ FIXED | HIGH |
-| Hardcoded credentials | CRITICAL | config.py | PLANNED | LOW |
-| Weak share passwords | MEDIUM | share.py | PLANNED | LOW |
-| Report access logic | MEDIUM | main.py | TODO | TBD |
+| Finding | Severity | File | Status | Task | Effort |
+|---------|----------|------|--------|------|--------|
+| JWT "none" algorithm | CRITICAL | auth.py | ✅ FIXED | Task 1 | LOW |
+| UUID enumeration (Scans + Users) | HIGH | models.py | ✅ FIXED | Task 1 | HIGH |
+| **SQL Injection** | **CRITICAL** | **database.py** | **✅ FIXED** | **Task 3** | **LOW** |
+| **IDOR (missing authorization)** | **HIGH** | **main.py** | **✅ FIXED** | **Task 3** | **LOW** |
+| **Logger credential leaks (2x)** | **HIGH** | **main.py** | **✅ FIXED** | **Task 3** | **LOW** |
+| **Hardcoded credentials** | **CRITICAL** | **config.py** | **✅ FIXED** | **Task 3** | **LOW** |
+| **Vulnerable cryptography** | **HIGH** | **requirements.txt** | **✅ FIXED** | **Task 3** | **LOW** |
+| **Vulnerable starlette** | **MEDIUM** | **requirements.txt** | **✅ FIXED** | **Task 3** | **LOW** |
+| **Report access logic** | **MEDIUM** | **main.py** | **✅ FIXED** | **Task 3** | **LOW** |
+| Weak share passwords | MEDIUM | share.py | 📋 DEFERRED | — | LOW |
+| python-multipart (not reachable) | LOW | — | 📋 DEFERRED | — | — |
+
+**Task 3 Results: 9/10 findings fixed. 1 deferred (not reachable).**
 
 ---
 
