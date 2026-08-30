@@ -285,14 +285,44 @@ For production: Redesign to use POST with body or require authentication (Bearer
 
 ---
 
-## Residual Risks (Deferred)
+## Residual Risks (Documented)
 
-### Finding #11: Hardcoded Database Credentials (CRITICAL) - RESIDUAL RISK
+### Finding #11: Hardcoded Database Credentials (CRITICAL) - RESIDUAL RISK ⚠️
 - **Severity:** CRITICAL (9.5/10)
-- **File:** `app/config.py:40-41, 44`
-- **Status:** PENDING USER ACTION (GitHub Secrets + rotation)
-- **Why Deferred:** User handling GitHub Secrets setup and credential rotation (requires infrastructure access)
-- **Residual Risk:** Credentials in git history cannot be retroactively removed without full rebase. Current mitigation: restrict repo access.
+- **File:** `app/config.py:40-41, 44` (NOW REMOVED - credentials moved to GitHub Secrets)
+- **Status:** PARTIALLY FIXED - Credentials leaked in git history
+- **Commit:** c180fd7 (config.py now loads from env vars)
+
+**Residual Risk - CREDENTIALS ALREADY LEAKED:**
+- Credentials were hardcoded in source code and **exposed in git history**
+- Anyone with repository access can view the leaked values by examining commit history:
+  - `DB_USER = "vulntracker_app"`
+  - `DB_PASSWORD = "Tr@cker2024!"`
+  - `ADMIN_API_KEY = "sk-vt-prod-8f3a2b1c9d4e5f6a7b8c9d0e1f2a3b4c"`
+- These values **MUST BE ROTATED** on actual infrastructure
+- Git history cannot be retroactively cleaned without full rebase (destructive operation)
+
+**Required Mitigation (Infrastructure Level - Outside App Scope):**
+1. ✅ **Code fix done:** Moved credentials to GitHub Secrets, no longer in source code
+2. **⚠️ OUTSTANDING:** Rotate credentials on production/development infrastructure
+   - Change database password in actual database service
+   - Change ADMIN_API_KEY in any service that validates it
+   - Update any infrastructure that uses these credentials
+3. **⚠️ OUTSTANDING:** Repository access control
+   - Restrict who can view git history
+   - Consider repository as compromised if these credentials were ever in active use
+
+**Why Not Auto-Fixed:**
+- Requires access to actual infrastructure (database, API services)
+- Not part of application code remediation
+- User/ops team must perform credential rotation manually
+
+**Compensating Controls (Now in Place):**
+- ✅ Credentials no longer in source code
+- ✅ Credentials now loaded from GitHub Secrets (encrypted at rest)
+- ✅ Credentials not logged or exposed in application behavior
+- ✅ GitHub Actions CI/CD loads credentials from Secrets (not plaintext)
+- ✅ Config.py validates credentials exist (fails fast if missing)
 
 ### Finding #12: Vulnerable python-multipart (LOW) - NOT REACHABLE
 - **Severity:** LOW (downgraded)
