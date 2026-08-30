@@ -18,6 +18,12 @@ jobs:
           echo "JWT_PRIVATE_KEY_B64=${{ secrets.JWT_PRIVATE_KEY_B64 }}" >> $GITHUB_ENV
           echo "JWT_PUBLIC_KEY_B64=${{ secrets.JWT_PUBLIC_KEY_B64 }}" >> $GITHUB_ENV
 
+      - name: "Load database credentials from GitHub Secrets"
+        run: |
+          echo "DB_USER=${{ secrets.DB_USER }}" >> $GITHUB_ENV
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+          echo "ADMIN_API_KEY=${{ secrets.ADMIN_API_KEY }}" >> $GITHUB_ENV
+
       - name: "Setup Python 3.11"
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:

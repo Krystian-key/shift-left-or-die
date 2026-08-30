@@ -2,6 +2,9 @@ import os
 import base64
 from pathlib import Path
 
+# RESIDUAL RISK: Database URL is hardcoded. Should be environment variable.
+# TODO (Future): Load from os.getenv("DATABASE_URL", "sqlite:///./vulntracker.db")
+# This prevents easy switching between dev/test/prod databases without code changes.
 DATABASE_URL = "sqlite:///./vulntracker.db"
 
 # RSA keys for RS256 JWT (asymmetric)
@@ -36,11 +39,24 @@ if not PRIVATE_KEY or not PUBLIC_KEY:
 ALGORITHM = "RS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# Database credentials (migrate to env vars before production deployment)
-DB_USER = "vulntracker_app"
-DB_PASSWORD = "Tr@cker2024!"
+# Database credentials (loaded from GitHub Secrets via environment variables)
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+if not DB_USER or not DB_PASSWORD:
+    raise RuntimeError(
+        "Database credentials not configured. Set in GitHub Secrets:\n"
+        "  - DB_USER (database username)\n"
+        "  - DB_PASSWORD (database password)"
+    )
 
-# Internal service API key
-ADMIN_API_KEY = "sk-vt-prod-8f3a2b1c9d4e5f6a7b8c9d0e1f2a3b4c"
+# Internal service API key (loaded from GitHub Secrets)
+ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")
+if not ADMIN_API_KEY:
+    raise RuntimeError(
+        "ADMIN_API_KEY not configured. Set in GitHub Secrets."
+    )
 
+# RESIDUAL RISK: Service URL is hardcoded. Should be environment variable.
+# TODO (Future): Load from os.getenv("NOTIFY_SERVICE_URL", "http://localhost:3001")
+# This prevents different URLs for dev/staging/prod environments.
 NOTIFY_SERVICE_URL = "http://localhost:3001"

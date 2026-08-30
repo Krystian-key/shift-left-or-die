@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, or_
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -18,12 +18,15 @@ def get_db():
 
 
 def search_scans_by_query(db, query: str) -> list:
-    # Raw SQL used here for full-text search flexibility across multiple columns
-    sql = (
-        f"SELECT id, title, description, severity, status, cve_id, "
-        f"affected_component, owner_id, created_at FROM scan_results "
-        f"WHERE title LIKE '%{query}%' OR description LIKE '%{query}%' "
-        f"OR cve_id LIKE '%{query}%'"
-    )
-    result = db.execute(text(sql))
-    return [dict(row._mapping) for row in result]
+    import models
+
+    search_pattern = f"%{query}%"
+    results = db.query(models.ScanResult).filter(
+        or_(
+            models.ScanResult.title.ilike(search_pattern),
+            models.ScanResult.description.ilike(search_pattern),
+            models.ScanResult.cve_id.ilike(search_pattern)
+        )
+    ).all()
+    result_dicts = [{k: v for k, v in row.__dict__.items() if k != '_sa_instance_state'} for row in results]
+    return result_dicts

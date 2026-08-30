@@ -20,6 +20,8 @@ env/
 htmlcov/
 node_modules/
 .claude/
+.idea/
+get_jwt.py
 
 # Security: Never commit private keys or local env files
 private_key.pem
